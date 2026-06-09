@@ -3,7 +3,16 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { SYSTEM_PROMPT, buildUserPrompt } from "./prompts";
 import { AuditSchema, clampAudit, type Audit } from "./schema";
 
-const client = new Anthropic(); // reads ANTHROPIC_API_KEY
+// Lazy so a missing ANTHROPIC_API_KEY surfaces as a catchable request-time
+// error (clear JSON message) instead of crashing the route module at import.
+let _client: Anthropic | null = null;
+function getClient(): Anthropic {
+  if (!_client) {
+    if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not set");
+    _client = new Anthropic();
+  }
+  return _client;
+}
 
 export const MIN_PROFILE_CHARS = 200;
 export const MAX_PROFILE_CHARS = 60_000;
@@ -18,7 +27,7 @@ export async function analyzeProfile(profileText: string): Promise<Audit> {
   const text = profileText.trim();
   if (text.length < MIN_PROFILE_CHARS) throw new ProfileTooShortError();
 
-  const response = await client.messages.parse({
+  const response = await getClient().messages.parse({
     model: "claude-sonnet-4-6",
     max_tokens: 8192,
     system: SYSTEM_PROMPT,

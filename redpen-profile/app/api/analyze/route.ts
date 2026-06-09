@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
 import { analyzeProfile, ProfileTooShortError, MIN_PROFILE_CHARS } from "@/lib/claude";
 import { extractPdfText, UnreadablePdfError } from "@/lib/pdf";
 import { saveProfile } from "@/lib/storage";
@@ -73,6 +74,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: err.message }, { status: 422 });
     }
     console.error("analyze failed:", err);
+    if (
+      err instanceof Anthropic.AuthenticationError ||
+      err instanceof Anthropic.PermissionDeniedError ||
+      (err instanceof Error && err.message.includes("ANTHROPIC_API_KEY"))
+    ) {
+      return NextResponse.json(
+        { error: "Server configuration error: the AI API key is missing or invalid." },
+        { status: 500 }
+      );
+    }
+    if (err instanceof Anthropic.RateLimitError || err instanceof Anthropic.APIError) {
+      return NextResponse.json(
+        { error: "The AI service is unavailable right now. Please try again in a minute." },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
       { error: "Analysis failed. Please try again in a minute." },
       { status: 500 }
