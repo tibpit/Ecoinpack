@@ -38,12 +38,12 @@ export default function AuditPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/analyze", { method: "POST", body: form });
-      const data = await res.json();
+      const data = (await res.json()) as FreeResult & { error?: string };
       if (!res.ok) {
         setError(data.error ?? "Analysis failed. Please try again.");
         return;
       }
-      setResult(data as FreeResult);
+      setResult(data);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -59,9 +59,9 @@ export default function AuditPage() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blobId: result.blobId, blobUrl: result.blobUrl }),
+        body: JSON.stringify({ blobId: result.blobId }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok || !data.url) {
         setError(data.error ?? "Could not start checkout.");
         return;

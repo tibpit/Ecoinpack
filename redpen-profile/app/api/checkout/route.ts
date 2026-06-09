@@ -3,21 +3,24 @@ import { getStripe, PRICE_USD_CENTS, PRODUCT_NAME } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * POST /api/checkout
- * Body: { blobId, blobUrl } — identifies the uploaded profile in Vercel Blob.
- * Creates a one-time $19 Stripe Checkout session. The blob reference rides
- * in the session metadata so the webhook can regenerate the full analysis.
+ * Body: { blobId } — identifies the uploaded profile in Cloudflare KV.
+ * Creates a one-time $19 Stripe Checkout session. The blob id rides in the
+ * session metadata so the webhook can regenerate the full analysis.
  */
 export async function POST(request: Request) {
-  let blobId: unknown, blobUrl: unknown;
+  let blobId: unknown;
   try {
-    ({ blobId, blobUrl } = await request.json());
+    const body = (await request.json()) as Record<string, unknown>;
+    blobId = body.blobId;
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  if (typeof blobId !== "string" || typeof blobUrl !== "string" || !blobUrl.startsWith("https://")) {
+  if (typeof blobId !== "string" || !UUID_RE.test(blobId)) {
     return NextResponse.json({ error: "Missing blob reference" }, { status: 400 });
   }
 
@@ -43,7 +46,7 @@ export async function POST(request: Request) {
           },
         },
       ],
-      metadata: { blobId, blobUrl },
+      metadata: { blobId },
       success_url: `${appUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/audit`,
     });

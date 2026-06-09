@@ -1,9 +1,10 @@
 /**
  * Simple in-memory IP rate limiter: 3 free analyses per IP per UTC day.
  *
- * V1 caveat (documented in the README): on Vercel, serverless instances do
- * not share memory, so the limit applies per warm instance. Good enough as
- * an abuse brake for launch; swap for Upstash Redis / Vercel KV when needed.
+ * V1 caveat (documented in the README): on Cloudflare Workers, isolates do
+ * not share memory across colos/instances, so the limit applies per isolate.
+ * Good enough as an abuse brake for launch; move the counter to KV or a
+ * Durable Object for a hard guarantee.
  */
 const DAILY_LIMIT = 3;
 

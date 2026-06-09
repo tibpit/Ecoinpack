@@ -38,12 +38,12 @@ function SuccessContent() {
           setTimeout(poll, POLL_INTERVAL_MS);
           return;
         }
-        const data = await res.json();
-        if (!res.ok) {
+        const data = (await res.json()) as { audit?: Audit; error?: string };
+        if (!res.ok || !data.audit) {
           setError(data.error ?? "Could not load your result.");
           return;
         }
-        setAudit(data.audit as Audit);
+        setAudit(data.audit);
       } catch {
         if (polls < MAX_POLLS) setTimeout(poll, POLL_INTERVAL_MS);
         else setError("Network error. Your rewrite was still sent to your email.");

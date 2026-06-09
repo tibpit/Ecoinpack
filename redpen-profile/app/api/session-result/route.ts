@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { readResultBlob } from "@/lib/blob";
+import { readResult } from "@/lib/storage";
 import { AuditSchema } from "@/lib/schema";
 
 export const runtime = "nodejs";
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unknown session" }, { status: 404 });
   }
 
-  const raw = await readResultBlob(sessionId);
+  const raw = await readResult(sessionId);
   if (!raw) {
     // Webhook hasn't finished (or result expired after 24h)
     return NextResponse.json({ status: "pending" }, { status: 202 });

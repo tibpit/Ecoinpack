@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
-const nextConfig: NextConfig = {
-  // Keep the PDF parser (pdfjs-based) out of the bundler — it resolves its
-  // worker at runtime.
-  serverExternalPackages: ["pdf-parse"],
-};
+// Makes Cloudflare bindings (KV) available in `next dev` via miniflare.
+initOpenNextCloudflareForDev();
+
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

@@ -62,10 +62,9 @@ export interface FreeResult {
     quick_wins_count: number;
   };
   blobId: string;
-  blobUrl: string;
 }
 
-export function toFreeResult(audit: Audit, blobId: string, blobUrl: string): FreeResult {
+export function toFreeResult(audit: Audit, blobId: string): FreeResult {
   return {
     score: audit.score,
     score_rationale: audit.score_rationale,
@@ -77,6 +76,5 @@ export function toFreeResult(audit: Audit, blobId: string, blobUrl: string): Fre
       quick_wins_count: audit.quick_wins.length,
     },
     blobId,
-    blobUrl,
   };
 }

@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "redpen-profile",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "REDPEN_KV",
+      "id": "1748bda933a14e3e967dcc403d9c6b8d"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    // Public base URL, no trailing slash — update after the first deploy
+    // (workers.dev URL or custom domain). Also needed as a build-time env var.
+    "NEXT_PUBLIC_APP_URL": "http://localhost:3000",
+    // Verified Resend sender
+    "RESEND_FROM_EMAIL": "RedPen Profile <results@yourdomain.com>"
+  }
+  // Secrets (never in this file) — set with:
+  //   npx wrangler secret put ANTHROPIC_API_KEY
+  //   npx wrangler secret put STRIPE_SECRET_KEY
+  //   npx wrangler secret put STRIPE_WEBHOOK_SECRET
+  //   npx wrangler secret put RESEND_API_KEY
+}

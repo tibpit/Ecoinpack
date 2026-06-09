@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { analyzeProfile, ProfileTooShortError, MIN_PROFILE_CHARS } from "@/lib/claude";
 import { extractPdfText, UnreadablePdfError } from "@/lib/pdf";
-import { saveProfileBlob } from "@/lib/blob";
+import { saveProfile } from "@/lib/storage";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { toFreeResult } from "@/lib/schema";
 
 export const runtime = "nodejs";
-export const maxDuration = 120; // Claude analysis of a long profile can take a while
 
 /**
  * POST /api/analyze
@@ -14,7 +13,7 @@ export const maxDuration = 120; // Claude analysis of a long profile can take a 
  *   - file: a LinkedIn "Save to PDF" export, or
  *   - text: pasted profile text.
  * Returns the FREE tier only (score + headline rewrite + teaser counts).
- * The raw profile text is stored in Vercel Blob (24h TTL) so the Stripe
+ * The raw profile text is stored in Cloudflare KV (24h TTL) so the Stripe
  * webhook can regenerate the full analysis after payment.
  */
 export async function POST(request: Request) {
@@ -40,8 +39,7 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
-      const buffer = Buffer.from(await file.arrayBuffer());
-      profileText = await extractPdfText(buffer);
+      profileText = await extractPdfText(await file.arrayBuffer());
     } else if (typeof text === "string" && text.trim().length > 0) {
       profileText = text.trim();
     } else {
@@ -67,9 +65,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { blobId, blobUrl } = await saveProfileBlob(profileText);
+    const blobId = await saveProfile(profileText);
     const audit = await analyzeProfile(profileText);
-    return NextResponse.json(toFreeResult(audit, blobId, blobUrl));
+    return NextResponse.json(toFreeResult(audit, blobId));
   } catch (err) {
     if (err instanceof ProfileTooShortError) {
       return NextResponse.json({ error: err.message }, { status: 422 });
