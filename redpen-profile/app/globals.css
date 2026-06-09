@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #131a22;
+  --color-paper: #f6f4ee;
+  --color-red: #d43a2f;
+  --color-yellow: #ffe03d;
+
+  --font-display: var(--font-archivo), "Archivo", sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", monospace;
+  --font-sans: var(--font-inter), "Inter", sans-serif;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background-color: var(--color-yellow);
+  color: var(--color-ink);
+}
